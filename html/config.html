@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Configuration &#8212; Flask-Coney Documentation (1.x)</title>
+    <link rel="stylesheet" href="_static/flask.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/flask-coney-logo.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API" href="api.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" />
+  <script>DOCUMENTATION_OPTIONS.URL_ROOT = './';</script>
+   
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="quickstart.html" title="Quickstart"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Flask-Coney Documentation (1.x)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Configuration</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>The following configuration values exist for Flask-Coney.
+Flask-Coney loads these values from your main Flask config which can
+be populated in various ways.  Note that some of those cannot be modified
+after the engine was created so make sure to configure as early as
+possible and to not modify them at runtime.</p>
+<div class="section" id="configuration-keys">
+<h2>Configuration Keys<a class="headerlink" href="#configuration-keys" title="Permalink to this headline">¶</a></h2>
+<p>A list of configuration keys currently understood by the extension:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 45%" />
+<col style="width: 55%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CONEY_BROKER_URI</span></code></p></td>
+<td><p>The broker URI that should be used for
+the connection.  Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">amqp://username:password&#64;host:80</span></code></p></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="connection-uri-format">
+<h2>Connection URI Format<a class="headerlink" href="#connection-uri-format" title="Permalink to this headline">¶</a></h2>
+<p>For a complete list of connection URIs head over to the Pika
+documentation under (<a class="reference external" href="https://pika.readthedocs.io/en/stable/modules/parameters.html#pika.connection.URLParameters">Supported Databases</a>).</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+  <span id="sidebar-top"></span>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  
+    
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/flask-coney-logo.png" alt="Logo"/>
+            </a></p>
+  
+
+  <h3>Contents</h3>
+  <ul>
+<li><a class="reference internal" href="#">Configuration</a><ul>
+<li><a class="reference internal" href="#configuration-keys">Configuration Keys</a></li>
+<li><a class="reference internal" href="#connection-uri-format">Connection URI Format</a></li>
+</ul>
+</li>
+</ul>
+<h3>Navigation</h3>
+<ul>
+  <li><a href="index.html">Overview</a>
+    <ul>
+          <li>Previous: <a href="quickstart.html" title="previous chapter">Quickstart</a>
+          <li>Next: <a href="api.html" title="next chapter">API</a>
+    </ul>
+  </li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Mike Barkmin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  <script src="_static/version_warning_offset.js"></script>
+
+  </body>
+</html>
