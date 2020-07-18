@@ -30,7 +30,8 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: install rabbitmq
         run: |
-          sudo apt install rabbitmq-server
+          sudo apt update
+          sudo apt install rabbitmq-server -y
       - name: update pip
         run: |
           pip install -U wheel
