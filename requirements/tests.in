@@ -1,2 +1,4 @@
+wheel
 pytest
+pytest-rabbitmq
 mock

@@ -37,7 +37,7 @@ class _ConeyState:
 
     def __init__(self, coney):
         self.coney = coney
-        self.connection = None
+        self.connections = {}
         self.channels = {}
         self.consumer_tags = []
         self.data = {}
@@ -80,10 +80,11 @@ class Coney:
         coney.publish({"test": 1})
     """
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, testing=False):
 
         self.app = app
         self.thread = None
+        self.testing = testing
         if app is not None:
             self.init_app(app)
 
@@ -121,19 +122,19 @@ class Coney:
             " http://mikebarkmin.github.io/flask-coney/contexts/."
         )
 
-    def get_connection(self, app=None, bind=None):
+    def get_connection(self, app=None, bind="default"):
         app = self.get_app(app)
         state = get_state(app)
 
-        connection = state.connection
+        connection = state.connections.get(bind)
         if connection is None:
             params = pika.URLParameters(app.config["CONEY_BROKER_URI"])
             connection = pika.BlockingConnection(params)
-            state.connection = connection
+            state.connections[bind] = connection
 
         return connection
 
-    def get_channel(self, app=None, bind=None):
+    def get_channel(self, app=None, bind="default"):
         """Returns a specific channel. If there is no connection to Coney a
         new connection will be established."""
 
@@ -161,41 +162,44 @@ class Coney:
 
     def queue(
         self,
-        type=ExchangeType.DIRECT,
         queue_name=None,
         exchange_name="",
-        routing_key="",
+        exchange_type=ExchangeType.DIRECT,
+        routing_key=None,
         app=None,
-        bind=None,
     ):
         """
         :param type: ExchangeType
         :param queue_name: Name of the queue
         :param exchange_name: Name of the exchange
+        :param exchange_type: Type of the exchange
         :param routing_key: The routing key
         :return: decorated function
         """
         app = self.get_app(app)
         state = get_state(app)
 
-        channel = self.get_channel(app, bind)
         if (
-            type == ExchangeType.FANOUT
-            or type == ExchangeType.DIRECT
-            or type == ExchangeType.TOPIC
-            or type == ExchangeType.HEADERS
+            exchange_type == ExchangeType.FANOUT
+            or exchange_type == ExchangeType.DIRECT
+            or exchange_type == ExchangeType.TOPIC
+            or exchange_type == ExchangeType.HEADERS
         ):
             if not queue_name:
                 # If queue name is empty, then declare a temporary queue
-                queue_name = self._temporary_queue_declare(app=app, bind=bind)
+                queue_name = self._temporary_queue_declare(app=app)
             else:
-                channel.queue_declare(queue=queue_name)
+                self._queue_declare(queue_name=queue_name)
         else:
-            raise ExchangeType(f"Exchange type {type} is not supported")
+            raise ExchangeType(f"Exchange type {exchange_type} is not supported")
 
         # Consume the queue
         self._exchange_bind_to_queue(
-            type, exchange_name, routing_key, queue_name, app=app, bind=bind
+            exchange_type=exchange_type,
+            exchange_name=exchange_name,
+            routing_key=routing_key,
+            queue=queue_name,
+            app=app,
         )
 
         def decorator(func):
@@ -210,8 +214,8 @@ class Coney:
 
         return decorator
 
-    def _temporary_queue_declare(self, app=None, bind=None):
-        return self._queue_declare(exclusive=True, auto_delete=True, app=app, bind=bind)
+    def _temporary_queue_declare(self, app=None):
+        return self._queue_declare(exclusive=True, auto_delete=True, app=app)
 
     def _queue_declare(
         self,
@@ -222,9 +226,9 @@ class Coney:
         auto_delete=False,
         arguments=None,
         app=None,
-        bind=None,
     ):
-        result = self.get_channel(app, bind).queue_declare(
+        channel = self.get_channel(app)
+        result = channel.queue_declare(
             queue=queue_name,
             passive=passive,
             durable=durable,
@@ -236,77 +240,91 @@ class Coney:
 
     def _exchange_bind_to_queue(
         self,
-        type=ExchangeType.DIRECT,
         exchange_name="",
-        routing_key="",
+        exchange_type=ExchangeType.DIRECT,
+        routing_key=None,
         queue="",
         app=None,
-        bind=None,
     ):
         """
         Declare exchange and bind queue to exchange
         :param type: The type of exchange
         :param exchange_name: The name of exchange
+        :param exchange_type: The type of exchange
         :param routing_key: The key of exchange bind to queue
         :param queue: queue name
         """
-        channel = self.get_channel(app, bind)
-        channel.exchange_declare(exchange=exchange_name, exchange_type=type)
-        channel.queue_bind(queue=queue, exchange=exchange_name, routing_key=routing_key)
+        if exchange_name == "" and routing_key is not None and routing_key != queue:
+            raise RuntimeError(
+                """The routing key of a queue in the default
+                exchange needs to be the same as the queue name or
+                None"""
+            )
 
-    def _accept(self, corr_id, result, app=None, bind=None):
+        if routing_key is None:
+            routing_key = queue
+
+        channel = self.get_channel(app)
+        if exchange_name != "":
+            channel.exchange_declare(
+                exchange=exchange_name, exchange_type=exchange_type
+            )
+            channel.queue_bind(
+                queue=queue, exchange=exchange_name, routing_key=routing_key
+            )
+
+    def _accept(self, corr_id, result, app=None):
         app = self.get_app(app)
         data = get_state(app).data
         data[corr_id]["is_accept"] = True
         data[corr_id]["result"] = result
-        self.get_channel(app, bind).queue_delete(data[corr_id]["reply_queue_name"])
+        self.get_channel(app).queue_delete(data[corr_id]["reply_queue_name"])
 
-    def _on_response(self, ch, method, props, body, app=None, bind=None):
+    def _on_response(self, ch, method, props, body, app=None):
         logging.info(f"on response => {body}")
 
         corr_id = props.correlation_id
         if props.content_type == "application/json":
             body = json.loads(body)
 
-        self._accept(corr_id, body, app=app, bind=bind)
+        self._accept(corr_id, body, app=app)
 
-    def _basic_consuming(self, queue_name, callback, app=None, bind=None):
+    def _basic_consuming(self, queue_name, callback, app=None):
         """
         Consume messages of a queue
 
         :param queue_name: Name of the queue
         :param callback: Function to call on new messages
 
-        :return: Consumer tag which may be used to canel the consumer
+        :return: Consumer tag which may be used to cancel the consumer
         """
 
-        def advanced_callback(ch, method, properties, body):
-            body = json.loads(body)
-            callback(ch, method, properties, body)
+        def advanced_callback(ch, method, props, body):
+            if props.content_type == "application/json":
+                body = json.loads(body)
+            callback(ch, method, props, body)
 
-        self.get_channel(app, bind).basic_qos(prefetch_count=1)
-        return self.get_channel(app, bind).basic_consume(queue_name, advanced_callback)
+        self.get_channel(app).basic_qos(prefetch_count=1)
+        return self.get_channel(app).basic_consume(queue_name, advanced_callback)
 
-    def _consuming(self, app=None, bind=None):
+    def _consuming(self, app=None):
         """
         Processes I/O events and dispatches timers and basic_consume
         callbacks until all consumers are cancelled.
         """
-        self.get_channel(app, bind).start_consuming()
+        self.get_channel(app, bind="thread").start_consuming()
 
-    def _stop_consuming(self, app=None, bind=None):
-        self.get_channel(app, bind).stop_consuming()
+    def _stop_consuming(self, app=None):
+        self.get_channel(app, bind="thread").stop_consuming()
 
     def publish(
         self,
         body,
-        type=ExchangeType.DIRECT,
         exchange_name="",
         routing_key=None,
         durable=False,
         properties=None,
         app=None,
-        bind=None,
     ):
         """
         Will publish a message
@@ -319,15 +337,12 @@ class Coney:
 
         :param body: Body of the message, either a string or a dict
         :param exchange_name: The exchange
+        :param exchange_type: The type of the exchange
         :param routing_key: The routing key
         :param corr_id: The corr id
         :param durable: Should the exchange be durable
         """
-        channel = self.get_channel(app, bind)
-        if exchange_name != "":
-            channel.exchange_declare(
-                exchange=exchange_name, durable=durable, exchange_type=type
-            )
+        channel = self.get_channel(app)
 
         if properties is None:
             properties = {}
@@ -343,14 +358,13 @@ class Coney:
             properties=pika.BasicProperties(**properties),
         )
 
-    def reply_sync(self, ch, method, properties, body, app=None, bind=None):
+    def reply_sync(self, ch, method, properties, body, app=None):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         self.publish(
             body,
             routing_key=properties.reply_to,
             properties={"correlation_id": properties.correlation_id},
             app=app,
-            bind=bind,
         )
 
     def publish_sync(
@@ -361,7 +375,6 @@ class Coney:
         properties=None,
         timeout=10,
         app=None,
-        bind="__all__",
     ):
         """
         Will publish a message and wait for the response
@@ -382,22 +395,17 @@ class Coney:
             @queue(queue_name="rpc")
             def concat_callback(ch, method, props, body):
                 result = body["a"] + body["b"]
-
                 body = {"result": result}
-
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-                coney.publish(body,
-                        routing_key=props.reply_to,
-                        corr_id=props.correlation_id)
+                coney.reply_sync(ch, method, props, body)
 
         :param body: Body of the message, either a string or a dict
         :param exchange: The exchange
         :param routing_key: The routing key
         :param timeout: Timeout in seconds
         """
-        corr_id = str(uuid.uuid4())
-        callback_queue = self._temporary_queue_declare(app=app, bind=bind)
         app = self.get_app(app)
+        corr_id = str(uuid.uuid4())
+        callback_queue = self._temporary_queue_declare(app=app)
         state = get_state(app)
         state.data[corr_id] = {
             "is_accept": False,
@@ -412,7 +420,7 @@ class Coney:
             body = json.dumps(body, cls=UUIDEncoder)
             properties["content_type"] = "application/json"
 
-        channel = self.get_channel(app, bind)
+        channel = self.get_channel(app)
         channel.basic_consume(callback_queue, self._on_response, auto_ack=True)
         channel.basic_publish(
             exchange="",
@@ -430,13 +438,14 @@ class Coney:
                 logging.info("Got the RPC server response")
                 return state.data[corr_id]["result"]
             else:
-                state.connection.process_data_events()
+                connection = self.get_connection(app)
+                connection.process_data_events()
                 time.sleep(0.3)
         logging.error("RPC timeout")
         return None
 
     def run(self):
         logging.info(" * The Flask Coney application is consuming")
-        if self.thread is None or not self.thread.is_alive():
+        if not self.testing and (self.thread is None or not self.thread.is_alive()):
             self.thread = threading.Thread(target=self._consuming)
             self.thread.start()

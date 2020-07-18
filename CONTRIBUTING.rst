@@ -147,6 +147,8 @@ Start coding
 Running the tests
 ~~~~~~~~~~~~~~~~~
 
+You need to have rabbitmq installed on your system.
+
 Run the basic test suite with pytest.
 
 .. code-block:: text

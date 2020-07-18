@@ -5,12 +5,19 @@
 #    pip-compile tests.in
 #
 attrs==19.3.0             # via pytest
+mirakuru==2.3.0           # via pytest-rabbitmq
 mock==4.0.2               # via -r tests.in
 more-itertools==8.4.0     # via pytest
 packaging==20.4           # via pytest
+pamqp==2.3.0              # via rabbitpy
 pluggy==0.13.1            # via pytest
+port-for==0.4             # via pytest-rabbitmq
+psutil==5.7.2             # via mirakuru
 py==1.9.0                 # via pytest
 pyparsing==2.4.7          # via packaging
-pytest==5.4.3             # via -r tests.in
+pytest-rabbitmq==2.0.1    # via -r tests.in
+pytest==5.4.3             # via -r tests.in, pytest-rabbitmq
+rabbitpy==2.0.1           # via pytest-rabbitmq
 six==1.15.0               # via packaging
 wcwidth==0.2.5            # via pytest
+wheel==0.34.2             # via -r tests.in
