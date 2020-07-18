@@ -43,6 +43,8 @@ jobs:
           sudo dpkg -i rabbitmq-server_3.8.5-1_all.deb
 
           rm rabbitmq-server_3.8.5-1_all.deb
+
+          mkdir -p /home/$USER
       - name: update pip
         run: |
           pip install -U wheel
