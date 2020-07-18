@@ -34,8 +34,9 @@ jobs:
           wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v$VERSION/rabbitmq-server-generic-unix-$VERSION.tar.xz
           tar -xf rabbitmq-server-generic-unix-$VERSION.tar.xz
           mv rabbitmq_server-$VERSION /home/$USER/rabbitmq
-          sudo ln -s /home/$USER/rabbitmq/sbin/rabbitmqctl /bin/rabbitmqctl
-          sudo ln -s /home/$USER/rabbitmq/sbin/rabbitmq-server /bin/rabbitmq-server
+          sudo mkdir -p /usr/lib/rabbitmq/bin
+          sudo ln -s /home/$USER/rabbitmq/sbin/rabbitmqctl /usr/lib/rabbitmq/bin/rabbitmqctl
+          sudo ln -s /home/$USER/rabbitmq/sbin/rabbitmq-server /usr/lib/rabbitmq/bin/rabbitmq-server
       - name: update pip
         run: |
           pip install -U wheel
