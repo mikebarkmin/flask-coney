@@ -37,6 +37,10 @@ jobs:
           sudo mkdir -p /usr/lib/rabbitmq/bin
           sudo ln -s /home/$USER/rabbitmq/sbin/rabbitmqctl /usr/lib/rabbitmq/bin/rabbitmqctl
           sudo ln -s /home/$USER/rabbitmq/sbin/rabbitmq-server /usr/lib/rabbitmq/bin/rabbitmq-server
+          sudo chmod +x /home/$USER/rabbitmq/sbin/rabbitmqctl
+          sudo chmod +x /home/$USER/rabbitmq/sbin/rabbitmq-server
+          sudo chown $USER /usr/lib/rabbitmq/bin/rabbitmqctl
+          sudo chown $USER /usr/lib/rabbitmq/bin/rabbitmq-server
       - name: update pip
         run: |
           pip install -U wheel
