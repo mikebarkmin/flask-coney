@@ -53,7 +53,7 @@
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="flask_coney.Coney">
-<em class="property">class </em><code class="sig-prename descclassname">flask_coney.</code><code class="sig-name descname">Coney</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">flask_coney.</code><code class="sig-name descname">Coney</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">testing</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class is used to control the Coney integration to one or more Flask
 applications. Depending on how you initialize the object it is usable right
 away or will attach as needed to a Flask application.</p>
@@ -101,7 +101,7 @@ application later to support it:</p>
 
 <dl class="py method">
 <dt id="flask_coney.Coney.get_channel">
-<code class="sig-name descname">get_channel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bind</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.get_channel" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_channel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bind</span><span class="o">=</span><span class="default_value">'default'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.get_channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a specific channel. If there is no connection to Coney a
 new connection will be established.</p>
 </dd></dl>
@@ -115,7 +115,7 @@ with Coney.</p>
 
 <dl class="py method">
 <dt id="flask_coney.Coney.publish">
-<code class="sig-name descname">publish</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">body</span></em>, <em class="sig-param"><span class="n">type</span><span class="o">=</span><span class="default_value">'direct'</span></em>, <em class="sig-param"><span class="n">exchange_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">routing_key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">durable</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">properties</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bind</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.publish" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">publish</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">body</span></em>, <em class="sig-param"><span class="n">exchange_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">routing_key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">durable</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">properties</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.publish" title="Permalink to this definition">¶</a></dt>
 <dd><p>Will publish a message</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/process&#39;</span><span class="p">):</span>
@@ -128,6 +128,7 @@ with Coney.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>body</strong> – Body of the message, either a string or a dict</p></li>
 <li><p><strong>exchange_name</strong> – The exchange</p></li>
+<li><p><strong>exchange_type</strong> – The type of the exchange</p></li>
 <li><p><strong>routing_key</strong> – The routing key</p></li>
 <li><p><strong>corr_id</strong> – The corr id</p></li>
 <li><p><strong>durable</strong> – Should the exchange be durable</p></li>
@@ -138,7 +139,7 @@ with Coney.</p>
 
 <dl class="py method">
 <dt id="flask_coney.Coney.publish_sync">
-<code class="sig-name descname">publish_sync</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">body</span></em>, <em class="sig-param"><span class="n">exchange_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">routing_key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">properties</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bind</span><span class="o">=</span><span class="default_value">'__all__'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.publish_sync" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">publish_sync</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">body</span></em>, <em class="sig-param"><span class="n">exchange_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">routing_key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">properties</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.publish_sync" title="Permalink to this definition">¶</a></dt>
 <dd><p>Will publish a message and wait for the response</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># client</span>
@@ -155,13 +156,8 @@ with Coney.</p>
 <span class="nd">@queue</span><span class="p">(</span><span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;rpc&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">concat_callback</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">body</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">]</span>
-
     <span class="n">body</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">}</span>
-
-    <span class="n">ch</span><span class="o">.</span><span class="n">basic_ack</span><span class="p">(</span><span class="n">delivery_tag</span><span class="o">=</span><span class="n">method</span><span class="o">.</span><span class="n">delivery_tag</span><span class="p">)</span>
-    <span class="n">coney</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">body</span><span class="p">,</span>
-            <span class="n">routing_key</span><span class="o">=</span><span class="n">props</span><span class="o">.</span><span class="n">reply_to</span><span class="p">,</span>
-            <span class="n">corr_id</span><span class="o">=</span><span class="n">props</span><span class="o">.</span><span class="n">correlation_id</span><span class="p">)</span>
+    <span class="n">coney</span><span class="o">.</span><span class="n">reply_sync</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -178,13 +174,14 @@ with Coney.</p>
 
 <dl class="py method">
 <dt id="flask_coney.Coney.queue">
-<code class="sig-name descname">queue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type</span><span class="o">=</span><span class="default_value">'direct'</span></em>, <em class="sig-param"><span class="n">queue_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">exchange_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">routing_key</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bind</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.queue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">queue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">queue_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">exchange_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">exchange_type</span><span class="o">=</span><span class="default_value">'direct'</span></em>, <em class="sig-param"><span class="n">routing_key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.queue" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>type</strong> – ExchangeType</p></li>
 <li><p><strong>queue_name</strong> – Name of the queue</p></li>
 <li><p><strong>exchange_name</strong> – Name of the exchange</p></li>
+<li><p><strong>exchange_type</strong> – Type of the exchange</p></li>
 <li><p><strong>routing_key</strong> – The routing key</p></li>
 </ul>
 </dd>
