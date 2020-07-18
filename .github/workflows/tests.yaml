@@ -30,8 +30,19 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: install rabbitmq
         run: |
-          sudo apt update
-          sudo apt install rabbitmq-server -y
+          # sync package metadata
+          sudo apt-get update
+          # install dependencies manually
+          sudo apt-get -y install socat logrotate init-system-helpers adduser
+
+          # download the package
+          sudo apt-get -y install wget
+          wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.8.5/rabbitmq-server_3.8.5-1_all.deb
+
+          # install the package with dpkg
+          sudo dpkg -i rabbitmq-server_3.8.5-1_all.deb
+
+          rm rabbitmq-server_3.8.5-1_all.deb
       - name: update pip
         run: |
           pip install -U wheel
