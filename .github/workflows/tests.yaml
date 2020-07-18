@@ -44,7 +44,10 @@ jobs:
 
           rm rabbitmq-server_3.8.5-1_all.deb
 
+          echo $HOME
+
           mkdir -p /home/$USER
+          export HOME=/home/$USER
       - name: update pip
         run: |
           pip install -U wheel
