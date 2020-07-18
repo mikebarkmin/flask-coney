@@ -196,3 +196,14 @@ Build the docs in the ``docs`` directory using Sphinx.
 Open ``_build/html/index.html`` in your browser to view the docs.
 
 Read more about `Sphinx <https://www.sphinx-doc.org/en/stable/>`__.
+
+Release
+~~~~~~~
+
+Change ``__version__`` in ``src/flask_coney/__init__.py``.
+
+.. code-block:: text
+
+  $ python setup.py sdist
+  $ pip install twine
+  $ twine upload dist/*
