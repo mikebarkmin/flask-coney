@@ -33,7 +33,7 @@ jobs:
           VERSION=3.8.5
           wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v$VERSION/rabbitmq-server-generic-unix-$VERSION.tar.xz
           tar -xf rabbitmq-server-generic-unix-$VERSION.tar.xz
-          mv rabbitmq-server-generic-unix-$VERSION /home/$USER/rabbitmq
+          mv rabbitmq_server-$VERSION /home/$USER/rabbitmq
           sudo ln -s /home/$USER/rabbitmq/sbin/rabbitmqctl /bin/rabbitmqctl
           sudo ln -s /home/$USER/rabbitmq/sbin/rabbitmq-server /bin/rabbitmq-server
       - name: update pip
