@@ -54,5 +54,15 @@ jobs:
           path: ~/.cache/pre-commit
           key: pre-commit|${{ matrix.python }}|${{ hashFiles('.pre-commit-config.yaml') }}
         if: matrix.tox == 'style'
-      - run: pip install tox
-      - run: tox -e ${{ matrix.tox }}
+      - name: setup and run tox
+        run: |
+          pip install tox
+          tox -e ${{ matrix.tox }}
+      - name: upload coverage to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: ./coverage.xml
+          flags: unittest
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
