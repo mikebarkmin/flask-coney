@@ -4,7 +4,7 @@ from pytest_rabbitmq import factories
 
 from flask_coney import Coney
 
-rabbitmq_proc = factories.rabbitmq_proc(port=8000)
+rabbitmq_proc = factories.rabbitmq_proc()
 rabbitmq = factories.rabbitmq("rabbitmq_proc")
 
 
@@ -12,7 +12,7 @@ rabbitmq = factories.rabbitmq("rabbitmq_proc")
 def app():
     app = Flask(__name__)
     app.testing = True
-    app.config["CONEY_BROKER_URI"] = "amqp://guest:guest@localhost:8000"
+    app.config["CONEY_BROKER_URI"] = "amqp://guest:guest@localhost:6789"
     return app
 
 

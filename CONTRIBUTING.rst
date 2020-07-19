@@ -149,6 +149,14 @@ Running the tests
 
 You need to have rabbitmq installed on your system.
 
+.. code-block:: text
+
+  $ RABBITMQ_VERSION=3.8.5
+  $ wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v$RABBITMQ_VERSION/rabbitmq-server-generic-unix-$RABBITMQ_VERSION.tar.xz
+  $ tar -xf rabbitmq-server-generic-unix-$RABBITMQ_VERSION.tar.xz
+  $ mv rabbitmq_server-$RABBITMQ_VERSION rabbitmq_server
+  $ rm rabbitmq-server-generic-unix-$RABBITMQ_VERSION.tar.xz
+
 Run the basic test suite with pytest.
 
 .. code-block:: text
