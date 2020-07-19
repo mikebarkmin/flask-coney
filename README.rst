@@ -10,6 +10,7 @@ Flask-Coney
     :alt: Read the Docs
 
 .. image:: https://github.com/mikebarkmin/flask-coney/workflows/Tests/badge.svg?branch=master
+    :target: https://github.com/mikebarkmin/flask-coney/actions?query=workflow%3ATests
     :alt: Tests
 
 .. image:: https://codecov.io/gh/mikebarkmin/flask-coney/branch/master/graph/badge.svg
