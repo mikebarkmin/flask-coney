@@ -1,6 +1,13 @@
 Flask-Coney
 ===========
 
+.. image:: https://badge.fury.io/py/Flask-Coney.svg
+    :target: https://pypi.org/project/Flask-Coney/
+    
+.. image:: https://img.shields.io/readthedocs/flask-coney
+    :target: https://flask-coney.readthedocs.io/en/latest/
+    :alt: Read the Docs
+
 Flask-Coney is an extension for `Flask`_ that adds support for
 `Pika`_ to your application. It aims to simplify using Pika
 with Flask by providing useful defaults and extra helpers that make it
