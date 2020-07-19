@@ -48,7 +48,7 @@ A Simple Example
     from flask_coney import Coney
 
     app = Flask(__name__)
-    app.config["CONEY_BROKER_URI"] = "sqlite:///example.sqlite"
+    app.config["CONEY_BROKER_URI"] = "amqp://guest:guest@rabbitmq"
     coney = Coney(app)
 
     @coney.queue(queue_name="test")
