@@ -9,7 +9,7 @@ from flask import current_app
 
 from .encoder import UUIDEncoder
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 class ExchangeTypeError(Exception):
