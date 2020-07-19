@@ -12,5 +12,5 @@ with open("src/flask_coney/__init__.py", encoding="utf8") as f:
 setup(
     name="Flask-Coney",
     version=version,
-    install_requires=["Flask>=1.0.4", "Pika>=1.1.0"],
+    install_requires=["Flask>=1.0.4", "Pika>=1.1.0", "retry>=0.9.2"],
 )
