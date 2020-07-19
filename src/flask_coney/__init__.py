@@ -245,7 +245,7 @@ class Coney:
 
         # Consume the queue
         self._exchange_bind_to_queue(
-            exchange_type=exchange_type.value,
+            exchange_type=exchange_type,
             exchange_name=exchange_name,
             routing_key=routing_key,
             queue=queue_name,
