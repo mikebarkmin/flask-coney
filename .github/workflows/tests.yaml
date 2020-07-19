@@ -19,7 +19,6 @@ jobs:
           - { name: Linux, python: '3.8', os: ubuntu-latest, tox: py38 }
           - { name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37 }
           - { name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36 }
-          - { name: 'PyPy', python: pypy3, os: ubuntu-latest, tox: pypy3 }
           - { name: Lowest, python: '3.8', os: ubuntu-latest, tox: 'lowest' }
           - { name: Style, python: '3.8', os: ubuntu-latest, tox: style }
           - { name: Docs, python: '3.8', os: ubuntu-latest, tox: docs }
