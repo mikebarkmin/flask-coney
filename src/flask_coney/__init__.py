@@ -13,7 +13,7 @@ from flask import Flask
 
 from .encoder import UUIDEncoder
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 
 class ExchangeTypeError(Exception):
