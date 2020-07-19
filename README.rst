@@ -3,10 +3,19 @@ Flask-Coney
 
 .. image:: https://badge.fury.io/py/Flask-Coney.svg
     :target: https://pypi.org/project/Flask-Coney/
+    :alt: PyPi
 
 .. image:: https://img.shields.io/readthedocs/flask-coney
     :target: https://flask-coney.readthedocs.io/en/latest/
     :alt: Read the Docs
+
+.. image:: https://github.com/mikebarkmin/flask-coney/workflows/Tests/badge.svg?branch=master
+    :alt: Tests
+
+.. image:: https://codecov.io/gh/mikebarkmin/flask-coney/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/mikebarkmin/flask-coney
+    :alt: Coverage
+
 
 Flask-Coney is an extension for `Flask`_ that adds support for
 `Pika`_ to your application. It aims to simplify using Pika
