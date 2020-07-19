@@ -3,9 +3,13 @@ import logging
 import threading
 import time
 import uuid
+from enum import Enum
+from typing import Callable
+from typing import Union
 
 import pika
 from flask import current_app
+from flask import Flask
 
 from .encoder import UUIDEncoder
 
@@ -20,11 +24,21 @@ class SyncTimeoutError(Exception):
     pass
 
 
-class ExchangeType:
+class ExchangeType(Enum):
+    """Defines all possible exchange types
+    """
+
     DIRECT = "direct"
+    """direct exchange"""
+
     FANOUT = "fanout"
+    """fanout exchange"""
+
     TOPIC = "topic"
+    """topic exchange"""
+
     HEADERS = "headers"
+    """headers exchange"""
 
 
 def get_state(app):
@@ -82,17 +96,19 @@ class Coney:
         coney = Coney(app)
 
         coney.publish({"test": 1})
+
+    :param app: A flask app
+    :param testing: Setup testing mode. This will not invoke threads
     """
 
-    def __init__(self, app=None, testing=False):
-
+    def __init__(self, app: Flask = None, testing: bool = False):
         self.app = app
         self.thread = None
         self.testing = testing
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app):
+    def init_app(self, app: Flask):
         """
         This callback can be used to initialize an application for the use
         with Coney.
@@ -107,9 +123,11 @@ class Coney:
 
         app.extensions["coney"] = _ConeyState(self)
 
-    def get_app(self, reference_app=None):
+    def get_app(self, reference_app: Flask = None):
         """
         Helper method that implements the logic to look up an application.
+
+        :param reference_app: A flask app
         """
         if reference_app is not None:
             return reference_app
@@ -126,21 +144,35 @@ class Coney:
             " http://mikebarkmin.github.io/flask-coney/contexts/."
         )
 
-    def get_connection(self, app=None, bind="__default__"):
+    def get_connection(
+        self, app: Flask = None, bind: str = "__default__"
+    ) -> pika.BlockingConnection:
+        """Returns a specific connection. If there is no connection to the broker
+        a new connection will be established.
+
+        :param app: A flask app
+        :param bind: Namespace for multiple connections
+        """
         app = self.get_app(app)
         state = get_state(app)
 
         connection = state.connections.get(bind)
-        if connection is None:
+        if connection is None and app:
             params = pika.URLParameters(app.config["CONEY_BROKER_URI"])
             connection = pika.BlockingConnection(params)
             state.connections[bind] = connection
 
         return connection
 
-    def get_channel(self, app=None, bind="__default__"):
-        """Returns a specific channel. If there is no connection to Coney a
-        new connection will be established."""
+    def get_channel(
+        self, app: Flask = None, bind: str = "__default__"
+    ) -> pika.channel.Channel:
+        """Returns a specific channel. If there is no connection to the broker a
+        new connection will be established.
+
+        :param app: A flask app
+        :param bind: Namespace for multiple connections
+        """
 
         app = self.get_app(app)
         state = get_state(app)
@@ -154,8 +186,12 @@ class Coney:
 
         return channel
 
-    def close(self, app=None, bind="__default__"):
-        """Closes the connection"""
+    def close(self, app: Flask = None, bind: str = "__default__"):
+        """Closes the connection
+
+        :param app: A flask app
+        :param bind: Namespace for multiple connections
+        """
 
         app = self.get_app(app)
 
@@ -165,19 +201,30 @@ class Coney:
 
     def queue(
         self,
-        queue_name=None,
-        exchange_name="",
-        exchange_type=ExchangeType.DIRECT,
-        routing_key=None,
-        app=None,
-    ):
+        queue_name: str = "",
+        exchange_name: str = "",
+        exchange_type: ExchangeType = ExchangeType.DIRECT,
+        routing_key: str = None,
+        app: Flask = None,
+    ) -> Callable:
         """
+        A decorator for consuming a queue. A thread will start in the
+        background, if no other thread for this purpose was already started.
+        There will only be one thread for every queue.
+
+        Example::
+
+            @coney.queue(queue_name="test")
+            def queue_test(ch, method, props, body):
+                pass
+
         :param type: ExchangeType
         :param queue_name: Name of the queue
         :param exchange_name: Name of the exchange
         :param exchange_type: Type of the exchange
         :param routing_key: The routing key
-        :return: decorated function
+        :param app: A flask app
+        :param bind: Namespace for multiple connections
         """
         app = self.get_app(app)
         state = get_state(app)
@@ -198,7 +245,7 @@ class Coney:
 
         # Consume the queue
         self._exchange_bind_to_queue(
-            exchange_type=exchange_type,
+            exchange_type=exchange_type.value,
             exchange_name=exchange_name,
             routing_key=routing_key,
             queue=queue_name,
@@ -217,18 +264,18 @@ class Coney:
 
         return decorator
 
-    def _temporary_queue_declare(self, app=None):
+    def _temporary_queue_declare(self, app: Flask = None):
         return self._queue_declare(exclusive=True, auto_delete=True, app=app)
 
     def _queue_declare(
         self,
-        queue_name="",
-        passive=False,
-        durable=False,
-        exclusive=False,
-        auto_delete=False,
-        arguments=None,
-        app=None,
+        queue_name: str = "",
+        passive: bool = False,
+        durable: bool = False,
+        exclusive: bool = False,
+        auto_delete: bool = False,
+        arguments: dict = None,
+        app: Flask = None,
     ):
         channel = self.get_channel(app)
         result = channel.queue_declare(
@@ -243,11 +290,11 @@ class Coney:
 
     def _exchange_bind_to_queue(
         self,
-        exchange_name="",
-        exchange_type=ExchangeType.DIRECT,
-        routing_key=None,
-        queue="",
-        app=None,
+        exchange_name: str = "",
+        exchange_type: ExchangeType = ExchangeType.DIRECT,
+        routing_key: str = None,
+        queue: str = "",
+        app: Flask = None,
     ):
         """
         Declare exchange and bind queue to exchange
@@ -270,20 +317,27 @@ class Coney:
         channel = self.get_channel(app)
         if exchange_name != "":
             channel.exchange_declare(
-                exchange=exchange_name, exchange_type=exchange_type
+                exchange=exchange_name, exchange_type=exchange_type.value
             )
             channel.queue_bind(
                 queue=queue, exchange=exchange_name, routing_key=routing_key
             )
 
-    def _accept(self, corr_id, result, app=None):
+    def _accept(self, corr_id: str, result: str, app: Flask = None):
         app = self.get_app(app)
         data = get_state(app).data
         data[corr_id]["is_accept"] = True
         data[corr_id]["result"] = result
         self.get_channel(app).queue_delete(data[corr_id]["reply_queue_name"])
 
-    def _on_response(self, ch, method, props, body, app=None):
+    def _on_response(
+        self,
+        ch: pika.channel.Channel,
+        method: pika.spec.Basic.Deliver,
+        props: pika.spec.BasicProperties,
+        body: str,
+        app=None,
+    ):
         logging.info(f"on response => {body}")
 
         corr_id = props.correlation_id
@@ -292,7 +346,20 @@ class Coney:
 
         self._accept(corr_id, body, app=app)
 
-    def _basic_consuming(self, queue_name, callback, app=None):
+    def _basic_consuming(
+        self,
+        queue_name: str,
+        callback: Callable[
+            [
+                pika.channel.Channel,
+                pika.spec.Basic.Deliver,
+                pika.spec.BasicProperties,
+                str,
+            ],
+            None,
+        ],
+        app=None,
+    ):
         """
         Consume messages of a queue
 
@@ -322,12 +389,12 @@ class Coney:
 
     def publish(
         self,
-        body,
-        exchange_name="",
-        routing_key=None,
-        durable=False,
-        properties=None,
-        app=None,
+        body: Union[str, dict],
+        exchange_name: str = "",
+        routing_key: str = None,
+        durable: bool = False,
+        properties: dict = None,
+        app: Flask = None,
     ):
         """
         Will publish a message
@@ -342,8 +409,8 @@ class Coney:
         :param exchange_name: The exchange
         :param exchange_type: The type of the exchange
         :param routing_key: The routing key
-        :param corr_id: The corr id
         :param durable: Should the exchange be durable
+        :param app: A flask app
         """
         channel = self.get_channel(app)
 
@@ -361,7 +428,45 @@ class Coney:
             properties=pika.BasicProperties(**properties),
         )
 
-    def reply_sync(self, ch, method, properties, body, app=None):
+    def reply_sync(
+        self,
+        ch: pika.channel.Channel,
+        method: pika.spec.Basic.Deliver,
+        properties: pika.spec.BasicProperties,
+        body: str,
+        app=None,
+    ):
+        """
+        Will reply to a message, which was send by :meth:`publish_sync`
+
+        Example::
+
+            @queue(queue_name="rpc")
+            def concat_callback(ch, method, props, body):
+                result = body["a"] + body["b"]
+                body = {"result": result}
+                coney.reply_sync(ch, method, props, body)
+
+        This is a conveniences short hand method for::
+
+            @queue(queue_name="rpc")
+            def concat_callback(ch, method, props, body):
+                result = body["a"] + body["b"]
+                body = {"result": result}
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+                self.publish(
+                    body,
+                    routing_key=properties.reply_to,
+                    properties={"correlation_id": properties.correlation_id},
+                    app=app,
+                )
+
+        :parameter ch:
+        :parameter method:
+        :parameter properties:
+        :parameter body: The message to send
+
+        """
         ch.basic_ack(delivery_tag=method.delivery_tag)
         self.publish(
             body,
@@ -372,12 +477,12 @@ class Coney:
 
     def publish_sync(
         self,
-        body,
-        exchange_name="",
-        routing_key=None,
-        properties=None,
-        timeout=10,
-        app=None,
+        body: Union[str, dict],
+        exchange_name: str = "",
+        routing_key: str = None,
+        properties: dict = None,
+        timeout: float = 10,
+        app: Flask = None,
     ):
         """
         Will publish a message and wait for the response
@@ -402,9 +507,13 @@ class Coney:
                 coney.reply_sync(ch, method, props, body)
 
         :param body: Body of the message, either a string or a dict
-        :param exchange: The exchange
+        :param exchange_name: The exchange
         :param routing_key: The routing key
+        :param properties: see :py:class:`pika.spec.BasicProperties`
         :param timeout: Timeout in seconds
+        :param app: A flask app
+        :raises:
+            SyncTimeoutError: if no message received in timeout
         """
         app = self.get_app(app)
         corr_id = str(uuid.uuid4())

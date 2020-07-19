@@ -161,6 +161,7 @@ Run the basic test suite with pytest.
 
 .. code-block:: text
 
+    $ python -m mypy
     $ pytest
 
 This runs the tests for the current environment, which is usually
