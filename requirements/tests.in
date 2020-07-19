@@ -1,4 +1,5 @@
 wheel
 pytest
 pytest-rabbitmq
+pytest-cov
 mock
