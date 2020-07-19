@@ -182,9 +182,8 @@ generate a report.
 
 .. code-block:: text
 
-    $ pip install coverage
-    $ coverage run -m pytest
-    $ coverage html
+    $ pip install -r requirements/tests.txt
+    $ pytest --cov --cov-append --cover-report=term-missing
 
 Open ``htmlcov/index.html`` in your browser to explore the report.
 

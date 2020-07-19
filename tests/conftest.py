@@ -18,7 +18,8 @@ def app():
 
 @pytest.fixture
 def coney(app):
-    return Coney(app, testing=True)
+    with app.app_context():
+        yield Coney(app, testing=True)
 
 
 @pytest.fixture

@@ -16,6 +16,10 @@ class ExchangeTypeError(Exception):
     pass
 
 
+class SyncTimeoutError(Exception):
+    pass
+
+
 class ExchangeType:
     DIRECT = "direct"
     FANOUT = "fanout"
@@ -122,7 +126,7 @@ class Coney:
             " http://mikebarkmin.github.io/flask-coney/contexts/."
         )
 
-    def get_connection(self, app=None, bind="default"):
+    def get_connection(self, app=None, bind="__default__"):
         app = self.get_app(app)
         state = get_state(app)
 
@@ -134,7 +138,7 @@ class Coney:
 
         return connection
 
-    def get_channel(self, app=None, bind="default"):
+    def get_channel(self, app=None, bind="__default__"):
         """Returns a specific channel. If there is no connection to Coney a
         new connection will be established."""
 
@@ -150,13 +154,12 @@ class Coney:
 
         return channel
 
-    def close(self, app=None):
+    def close(self, app=None, bind="__default__"):
         """Closes the connection"""
 
         app = self.get_app(app)
-        state = get_state(app)
 
-        connection = state.connection
+        connection = self.get_connection(app=app, bind=bind)
         if connection is not None:
             connection.close()
 
@@ -191,7 +194,7 @@ class Coney:
             else:
                 self._queue_declare(queue_name=queue_name)
         else:
-            raise ExchangeType(f"Exchange type {exchange_type} is not supported")
+            raise ExchangeTypeError(f"Exchange type {exchange_type} is not supported")
 
         # Consume the queue
         self._exchange_bind_to_queue(
@@ -307,15 +310,15 @@ class Coney:
         self.get_channel(app).basic_qos(prefetch_count=1)
         return self.get_channel(app).basic_consume(queue_name, advanced_callback)
 
-    def _consuming(self, app=None):
+    def _start_consuming(self, app=None):
         """
         Processes I/O events and dispatches timers and basic_consume
         callbacks until all consumers are cancelled.
         """
-        self.get_channel(app, bind="thread").start_consuming()
+        self.get_channel(app, bind="__thread__").start_consuming()
 
     def _stop_consuming(self, app=None):
-        self.get_channel(app, bind="thread").stop_consuming()
+        self.get_channel(app, bind="__thread__").stop_consuming()
 
     def publish(
         self,
@@ -441,11 +444,10 @@ class Coney:
                 connection = self.get_connection(app)
                 connection.process_data_events()
                 time.sleep(0.3)
-        logging.error("RPC timeout")
-        return None
+        raise SyncTimeoutError()
 
     def run(self):
         logging.info(" * The Flask Coney application is consuming")
         if not self.testing and (self.thread is None or not self.thread.is_alive()):
-            self.thread = threading.Thread(target=self._consuming)
+            self.thread = threading.Thread(target=self._start_consuming)
             self.thread.start()
