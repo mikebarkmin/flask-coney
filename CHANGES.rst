@@ -1,17 +1,22 @@
+Version 1.1.3
+-------------
+
+-   Fix: If channel is closed, reconnect
+
 Version 1.1.2
 -------------
 
--   Slow down retry rate
+-   Fix: Slow down retry rate
 
 Version 1.1.1
 -------------
 
--   Retry when connection to broker fails
+-   Fix: Retry when connection to broker fails
 
 Version 1.1.0
 -------------
 
--   Added typehints
+-   Chore: Added typehints
 
 Version 1.0.0
 -------------

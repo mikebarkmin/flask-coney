@@ -14,7 +14,7 @@ from retry import retry
 
 from .encoder import UUIDEncoder
 
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 
 
 class ExchangeTypeError(Exception):
@@ -182,7 +182,7 @@ class Coney:
         connection = self.get_connection(app=app, bind=bind)
 
         channel = state.channels.get(bind)
-        if channel is None:
+        if channel is None or channel.is_closed:
             channel = connection.channel()
             state.channels[bind] = channel
 
