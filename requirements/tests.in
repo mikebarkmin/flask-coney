@@ -3,4 +3,3 @@ pytest
 pytest-rabbitmq
 pytest-cov
 mock
-mypy

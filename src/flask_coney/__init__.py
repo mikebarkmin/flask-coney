@@ -14,7 +14,7 @@ from retry import retry
 
 from .encoder import UUIDEncoder
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 
 class ExchangeTypeError(Exception):
@@ -145,7 +145,7 @@ class Coney:
             " http://mikebarkmin.github.io/flask-coney/contexts/."
         )
 
-    @retry(pika.exceptions.AMQPConnectionError, tries=5)
+    @retry(pika.exceptions.AMQPConnectionError, tries=4, delay=1, jitter=3)
     def get_connection(
         self, app: Flask = None, bind: str = "__default__"
     ) -> pika.BlockingConnection:

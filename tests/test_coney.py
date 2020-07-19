@@ -1,6 +1,7 @@
 import json
 import time
 
+import pika
 import pytest
 from flask import Flask
 from rabbitpy import Exchange
@@ -45,6 +46,11 @@ def test_get_app_missing():
 
     with pytest.raises(RuntimeError):
         coney.get_app()
+
+
+def test_get_connection(coney):
+    with pytest.raises(pika.exceptions.AMQPConnectionError):
+        coney.get_connection()
 
 
 def test_close_connection(app, coney, rabbitmq, rabbitmq_proc):

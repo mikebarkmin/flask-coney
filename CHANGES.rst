@@ -1,3 +1,8 @@
+Version 1.1.2
+-------------
+
+-   Slow down retry rate
+
 Version 1.1.1
 -------------
 
