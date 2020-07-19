@@ -71,7 +71,7 @@ contribution to Flask-Coney, see the `contributing guidelines`_.
 Links
 -----
 
--   Documentation: https://mikebarkmin.github.io/flask-coney/
+-   Documentation: https://flask-coney.readthedocs.io
 -   Releases: https://pypi.org/project/Flask-Coney/
 -   Code: https://github.com/mikebarkmin/flask-coney
 -   Issue tracker: https://github.com/mikebarkmin/flask-coney/issues
