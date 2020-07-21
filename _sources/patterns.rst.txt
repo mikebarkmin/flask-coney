@@ -24,12 +24,12 @@ which allows a user to request the processed data.
 Service 1
 ~~~~~~~~~
 
-.. literalinclude:: ../examples/hello_world/service1/app.py
+.. literalinclude:: ../examples/hello_world/service1/main.py
 
 Serivce 2
 ~~~~~~~~~
 
-.. literalinclude:: ../examples/hello_world/service2/app.py
+.. literalinclude:: ../examples/hello_world/service2/main.py
 
 
 Work queues
