@@ -49,6 +49,33 @@
             
   <div class="section" id="quickstart">
 <span id="id1"></span><h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<p>Queue up and come down the rabbit hole. Flask-Coney makes it very
+easy to connect your flask application with eachother. On this page
+examples on how to integrate Flask-Coney are shown. For the complete
+guide, checkout the API documentation on the <code class="xref py py-class docutils literal notranslate"><span class="pre">Coney</span></code> class.</p>
+<div class="section" id="a-minimal-application">
+<h2>A Minimal Application<a class="headerlink" href="#a-minimal-application" title="Permalink to this headline">¶</a></h2>
+<p>For the common case of having one Flask application all you have to
+do is to create your Flask application, load the configuration of
+choice and then create the <code class="xref py py-class docutils literal notranslate"><span class="pre">Coney</span></code> object by passing it the
+application.</p>
+<p>Once created, that object can be used to decorate functions, which
+consume messages send to certain queues and to publish message:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+<span class="nd">@coney</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span><span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_queue</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="n">coney</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;Hi&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -65,6 +92,14 @@
               <img class="logo" src="_static/flask-coney-logo.png" alt="Logo"/>
             </a></p>
   
+
+  <h3>Contents</h3>
+  <ul>
+<li><a class="reference internal" href="#">Quickstart</a><ul>
+<li><a class="reference internal" href="#a-minimal-application">A Minimal Application</a></li>
+</ul>
+</li>
+</ul>
 <h3>Navigation</h3>
 <ul>
   <li><a href="index.html">Overview</a>

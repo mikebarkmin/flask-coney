@@ -18,7 +18,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="License" href="license.html" />
-    <link rel="prev" title="Configuration" href="config.html" />
+    <link rel="prev" title="Patterns" href="patterns.html" />
   <script>DOCUMENTATION_OPTIONS.URL_ROOT = './';</script>
    
   </head><body>
@@ -35,7 +35,7 @@
           <a href="license.html" title="License"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="config.html" title="Configuration"
+          <a href="patterns.html" title="Patterns"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">Flask-Coney Documentation (1.x)</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">API</a></li> 
@@ -96,15 +96,39 @@ application later to support it:</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="flask_coney.Coney.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bind</span><span class="o">=</span><span class="default_value">'__default__'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Closes the connection</p>
+<dt id="flask_coney.Coney.channel">
+<code class="sig-name descname">channel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides context for a channel.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">channel</span><span class="p">(</span><span class="n">app</span><span class="p">)</span> <span class="k">as</span> <span class="n">ch</span><span class="p">:</span>
+    <span class="n">ch</span><span class="o">.</span><span class="n">basic_publish</span><span class="p">()</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Flask</span></code>]) – A flask app</p></li>
-<li><p><strong>bind</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Namespace for multiple connections</p></li>
-</ul>
+<dd class="field-odd"><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Flask</span></code>]) – A flask app</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pika.readthedocs.io/en/stable/modules/channel.html#pika.channel.Channel" title="(in pika v1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="flask_coney.Coney.connection">
+<code class="sig-name descname">connection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides context for a connection.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">connection</span><span class="p">(</span><span class="n">app</span><span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">channel</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Flask</span></code>]) – A flask app</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pika.readthedocs.io/en/stable/modules/adapters/blocking.html#pika.adapters.blocking_connection.BlockingConnection" title="(in pika v1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">BlockingConnection</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -116,42 +140,6 @@ application later to support it:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>reference_app</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Flask</span></code>]) – A flask app</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="flask_coney.Coney.get_channel">
-<code class="sig-name descname">get_channel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bind</span><span class="o">=</span><span class="default_value">'__default__'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.get_channel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a specific channel. If there is no connection to the broker a
-new connection will be established.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Flask</span></code>]) – A flask app</p></li>
-<li><p><strong>bind</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Namespace for multiple connections</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://pika.readthedocs.io/en/stable/modules/channel.html#pika.channel.Channel" title="(in pika v1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="flask_coney.Coney.get_connection">
-<code class="sig-name descname">get_connection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bind</span><span class="o">=</span><span class="default_value">'__default__'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#flask_coney.Coney.get_connection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a specific connection. If there is no connection to the broker
-a new connection will be established.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Flask</span></code>]) – A flask app</p></li>
-<li><p><strong>bind</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Namespace for multiple connections</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://pika.readthedocs.io/en/stable/modules/adapters/blocking.html#pika.adapters.blocking_connection.BlockingConnection" title="(in pika v1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">BlockingConnection</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -245,10 +233,9 @@ There will only be one thread for every queue.</p>
 <li><p><strong>type</strong> – ExchangeType</p></li>
 <li><p><strong>queue_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Name of the queue</p></li>
 <li><p><strong>exchange_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Name of the exchange</p></li>
-<li><p><strong>exchange_type</strong> (<a class="reference internal" href="#flask_coney.ExchangeType" title="flask_coney.ExchangeType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeType</span></code></a>) – Type of the exchange</p></li>
+<li><p><strong>exchange_type</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeType</span></code>) – Type of the exchange</p></li>
 <li><p><strong>routing_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – The routing key</p></li>
 <li><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Flask</span></code>]) – A flask app</p></li>
-<li><p><strong>bind</strong> – Namespace for multiple connections</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -274,7 +261,6 @@ There will only be one thread for every queue.</p>
 <span class="k">def</span> <span class="nf">concat_callback</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">body</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">]</span>
     <span class="n">body</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">}</span>
-    <span class="n">ch</span><span class="o">.</span><span class="n">basic_ack</span><span class="p">(</span><span class="n">delivery_tag</span><span class="o">=</span><span class="n">method</span><span class="o">.</span><span class="n">delivery_tag</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span>
         <span class="n">body</span><span class="p">,</span>
         <span class="n">routing_key</span><span class="o">=</span><span class="n">properties</span><span class="o">.</span><span class="n">reply_to</span><span class="p">,</span>
@@ -356,7 +342,7 @@ There will only be one thread for every queue.</p>
 <ul>
   <li><a href="index.html">Overview</a>
     <ul>
-          <li>Previous: <a href="config.html" title="previous chapter">Configuration</a>
+          <li>Previous: <a href="patterns.html" title="previous chapter">Patterns</a>
           <li>Next: <a href="license.html" title="next chapter">License</a>
     </ul>
   </li>

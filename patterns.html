@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Patterns &#8212; Flask-Coney Documentation (1.x)</title>
+    <link rel="stylesheet" href="_static/flask.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/flask-coney-logo.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API" href="api.html" />
+    <link rel="prev" title="Configuration" href="config.html" />
+  <script>DOCUMENTATION_OPTIONS.URL_ROOT = './';</script>
+   
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Configuration"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Flask-Coney Documentation (1.x)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Patterns</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="patterns">
+<span id="id1"></span><h1>Patterns<a class="headerlink" href="#patterns" title="Permalink to this headline">¶</a></h1>
+<p>Flask-Coney can be used to archive different messaging patterns. A
+few typical patterns, found on <a class="reference external" href="https://www.rabbitmq.com/getstarted.html">RabbitMQ Tutorials</a>, will be
+displayed here.</p>
+<div class="section" id="hallo-world">
+<h2>Hallo World<a class="headerlink" href="#hallo-world" title="Permalink to this headline">¶</a></h2>
+<p>In this example we have two services (aka flask applications).
+Service 1 will receive data from a http post request. It will send
+this data to the message broker with the routing_key “process”.
+Service 2 will pick up any message with the routing key “process”,
+process and store the data. Service 2 also provides an api endpoint,
+which allows a user to request the processed data.</p>
+<div class="section" id="service-1">
+<h3>Service 1<a class="headerlink" href="#service-1" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="serivce-2">
+<h3>Serivce 2<a class="headerlink" href="#serivce-2" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="work-queues">
+<h2>Work queues<a class="headerlink" href="#work-queues" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="publish-subscribe">
+<h2>Publish/Subscribe<a class="headerlink" href="#publish-subscribe" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="routing">
+<h2>Routing<a class="headerlink" href="#routing" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="topics">
+<h2>Topics<a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="request-reply">
+<h2>Request/Reply<a class="headerlink" href="#request-reply" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+  <span id="sidebar-top"></span>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  
+    
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/flask-coney-logo.png" alt="Logo"/>
+            </a></p>
+  
+
+  <h3>Contents</h3>
+  <ul>
+<li><a class="reference internal" href="#">Patterns</a><ul>
+<li><a class="reference internal" href="#hallo-world">Hallo World</a><ul>
+<li><a class="reference internal" href="#service-1">Service 1</a></li>
+<li><a class="reference internal" href="#serivce-2">Serivce 2</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#work-queues">Work queues</a></li>
+<li><a class="reference internal" href="#publish-subscribe">Publish/Subscribe</a></li>
+<li><a class="reference internal" href="#routing">Routing</a></li>
+<li><a class="reference internal" href="#topics">Topics</a></li>
+<li><a class="reference internal" href="#request-reply">Request/Reply</a></li>
+</ul>
+</li>
+</ul>
+<h3>Navigation</h3>
+<ul>
+  <li><a href="index.html">Overview</a>
+    <ul>
+          <li>Previous: <a href="config.html" title="previous chapter">Configuration</a>
+          <li>Next: <a href="api.html" title="next chapter">API</a>
+    </ul>
+  </li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Mike Barkmin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  <script src="_static/version_warning_offset.js"></script>
+
+  </body>
+</html>

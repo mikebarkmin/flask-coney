@@ -46,19 +46,32 @@
   <div class="hide-header section" id="flask-coney">
 <h1>Flask-Coney<a class="headerlink" href="#flask-coney" title="Permalink to this headline">¶</a></h1>
 <img alt="_images/flask-coney-title.png" class="align-center" src="_images/flask-coney-title.png" />
-<p>Flask-Coney is an extension for <a class="reference external" href="http://flask.pocoo.org/">Flask</a> that adds
-support for <a class="reference external" href="https://pika.readthedocs.io">Pika</a> to your application. It aims to
-simplify using Pika with Flask by providing useful
-defaults and decorators that make it easier to
-accomplish common tasks.</p>
+<p>Flask-Coney is an extension for <a class="reference external" href="http://flask.pocoo.org/">Flask</a> that adds support for
+<a class="reference external" href="https://pika.readthedocs.io">Pika</a> to your application. It aims to simplify using Pika with
+Flask by providing useful defaults and decorators that make it
+easier to accomplish common tasks. It is intended to use in a
+multi-service system, where you want to have a distributed messaging
+system.</p>
 <div class="section" id="user-guide">
 <h2>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#a-minimal-application">A Minimal Application</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="config.html#configuration-keys">Configuration Keys</a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html#connection-uri-format">Connection URI Format</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="patterns.html">Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html#hallo-world">Hallo World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html#work-queues">Work queues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html#publish-subscribe">Publish/Subscribe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html#routing">Routing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html#topics">Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html#request-reply">Request/Reply</a></li>
 </ul>
 </li>
 </ul>
@@ -81,6 +94,7 @@ accomplish common tasks.</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#version-1-1-4">Version 1.1.4</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#version-1-1-3">Version 1.1.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#version-1-1-2">Version 1.1.2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#version-1-1-1">Version 1.1.1</a></li>
