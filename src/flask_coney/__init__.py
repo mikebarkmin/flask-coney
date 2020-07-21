@@ -3,7 +3,7 @@ import logging
 import threading
 import time
 import uuid
-from enum import Enum
+from contextlib import contextmanager
 from typing import Callable
 from typing import Union
 
@@ -12,34 +12,13 @@ from flask import current_app
 from flask import Flask
 from retry import retry
 
+from .consumer import ReconnectingConsumer
 from .encoder import UUIDEncoder
+from .exceptions import ExchangeTypeError
+from .exceptions import SyncTimeoutError
+from .exchange import ExchangeType
 
-__version__ = "1.1.3"
-
-
-class ExchangeTypeError(Exception):
-    pass
-
-
-class SyncTimeoutError(Exception):
-    pass
-
-
-class ExchangeType(Enum):
-    """Defines all possible exchange types
-    """
-
-    DIRECT = "direct"
-    """direct exchange"""
-
-    FANOUT = "fanout"
-    """fanout exchange"""
-
-    TOPIC = "topic"
-    """topic exchange"""
-
-    HEADERS = "headers"
-    """headers exchange"""
+__version__ = "1.1.4"
 
 
 def get_state(app):
@@ -56,9 +35,7 @@ class _ConeyState:
 
     def __init__(self, coney):
         self.coney = coney
-        self.connections = {}
-        self.channels = {}
-        self.consumer_tags = []
+        self.consumer_threads = []
         self.data = {}
 
 
@@ -122,6 +99,8 @@ class Coney:
         if not (app.config.get("CONEY_BROKER_URI")):
             raise RuntimeError("CONEY_BROKER_URI needs to be set")
 
+        self.broker_uri = app.config.get("CONEY_BROKER_URI")
+
         app.extensions["coney"] = _ConeyState(self)
 
     def get_app(self, reference_app: Flask = None):
@@ -145,60 +124,39 @@ class Coney:
             " http://mikebarkmin.github.io/flask-coney/contexts/."
         )
 
+    @contextmanager
+    def channel(self, app: Flask = None) -> pika.channel.Channel:
+        """Provides context for a channel.
+
+        Example::
+
+            with channel(app) as ch:
+                ch.basic_publish()
+
+        :param app: A flask app
+        """
+        with self.connection() as c:
+            yield c.channel()
+
+    @contextmanager
     @retry(pika.exceptions.AMQPConnectionError, tries=4, delay=1, jitter=3)
-    def get_connection(
-        self, app: Flask = None, bind: str = "__default__"
-    ) -> pika.BlockingConnection:
-        """Returns a specific connection. If there is no connection to the broker
-        a new connection will be established.
+    def connection(self, app: Flask = None) -> pika.BlockingConnection:
+        """Provides context for a connection.
+
+        Example::
+
+            with connection(app) as c:
+                c.channel()
 
         :param app: A flask app
-        :param bind: Namespace for multiple connections
         """
         app = self.get_app(app)
-        state = get_state(app)
+        params = pika.URLParameters(self.broker_uri)
+        connection = pika.BlockingConnection(params)
 
-        connection = state.connections.get(bind)
-        if connection is None and app:
-            params = pika.URLParameters(app.config["CONEY_BROKER_URI"])
-            connection = pika.BlockingConnection(params)
-            state.connections[bind] = connection
-
-        return connection
-
-    def get_channel(
-        self, app: Flask = None, bind: str = "__default__"
-    ) -> pika.channel.Channel:
-        """Returns a specific channel. If there is no connection to the broker a
-        new connection will be established.
-
-        :param app: A flask app
-        :param bind: Namespace for multiple connections
-        """
-
-        app = self.get_app(app)
-        state = get_state(app)
-
-        connection = self.get_connection(app=app, bind=bind)
-
-        channel = state.channels.get(bind)
-        if channel is None or channel.is_closed:
-            channel = connection.channel()
-            state.channels[bind] = channel
-
-        return channel
-
-    def close(self, app: Flask = None, bind: str = "__default__"):
-        """Closes the connection
-
-        :param app: A flask app
-        :param bind: Namespace for multiple connections
-        """
-
-        app = self.get_app(app)
-
-        connection = self.get_connection(app=app, bind=bind)
-        if connection is not None:
+        try:
+            yield connection
+        finally:
             connection.close()
 
     def queue(
@@ -226,7 +184,6 @@ class Coney:
         :param exchange_type: Type of the exchange
         :param routing_key: The routing key
         :param app: A flask app
-        :param bind: Namespace for multiple connections
         """
         app = self.get_app(app)
         state = get_state(app)
@@ -239,98 +196,50 @@ class Coney:
         ):
             if not queue_name:
                 # If queue name is empty, then declare a temporary queue
-                queue_name = self._temporary_queue_declare(app=app)
-            else:
-                self._queue_declare(queue_name=queue_name)
+                with self.channel(app) as channel:
+                    result = channel.queue_declare(
+                        queue=queue_name,
+                        passive=False,
+                        durable=False,
+                        exclusive=False,
+                        auto_delete=False,
+                    )
+                    queue_name = result.method.queue
+
+            if exchange_name == "" and routing_key and routing_key != queue_name:
+                # on default exchange it will be automaticaly bound ot quene_name
+                raise RuntimeError(
+                    """Routing key mismatch.
+                    Queues on default exchange should
+                    not have a routing key."""
+                )
         else:
             raise ExchangeTypeError(f"Exchange type {exchange_type} is not supported")
 
-        # Consume the queue
-        self._exchange_bind_to_queue(
-            exchange_type=exchange_type,
-            exchange_name=exchange_name,
-            routing_key=routing_key,
-            queue=queue_name,
-            app=app,
-        )
-
         def decorator(func):
-            consumer_tag = self._basic_consuming(queue_name, func)
-            state.consumer_tags.append(consumer_tag)
+            consumer = ReconnectingConsumer(
+                self.broker_uri,
+                exchange=exchange_name,
+                exchange_type=exchange_type,
+                queue=queue_name,
+                routing_key=routing_key,
+                on_message=func,
+            )
+            thread = threading.Thread(target=consumer.run)
+            state.consumer_threads.append((consumer, thread))
+            thread.start()
             return func
 
-        # start thread if not already started, which runs in the
-        # background. The background thread is only required for
-        # queue, therefore it is started here.
-        self.run()
-
         return decorator
-
-    def _temporary_queue_declare(self, app: Flask = None):
-        return self._queue_declare(exclusive=True, auto_delete=True, app=app)
-
-    def _queue_declare(
-        self,
-        queue_name: str = "",
-        passive: bool = False,
-        durable: bool = False,
-        exclusive: bool = False,
-        auto_delete: bool = False,
-        arguments: dict = None,
-        app: Flask = None,
-    ):
-        channel = self.get_channel(app)
-        result = channel.queue_declare(
-            queue=queue_name,
-            passive=passive,
-            durable=durable,
-            exclusive=exclusive,
-            auto_delete=auto_delete,
-            arguments=arguments,
-        )
-        return result.method.queue
-
-    def _exchange_bind_to_queue(
-        self,
-        exchange_name: str = "",
-        exchange_type: ExchangeType = ExchangeType.DIRECT,
-        routing_key: str = None,
-        queue: str = "",
-        app: Flask = None,
-    ):
-        """
-        Declare exchange and bind queue to exchange
-        :param type: The type of exchange
-        :param exchange_name: The name of exchange
-        :param exchange_type: The type of exchange
-        :param routing_key: The key of exchange bind to queue
-        :param queue: queue name
-        """
-        if exchange_name == "" and routing_key is not None and routing_key != queue:
-            raise RuntimeError(
-                """The routing key of a queue in the default
-                exchange needs to be the same as the queue name or
-                None"""
-            )
-
-        if routing_key is None:
-            routing_key = queue
-
-        channel = self.get_channel(app)
-        if exchange_name != "":
-            channel.exchange_declare(
-                exchange=exchange_name, exchange_type=exchange_type.value
-            )
-            channel.queue_bind(
-                queue=queue, exchange=exchange_name, routing_key=routing_key
-            )
 
     def _accept(self, corr_id: str, result: str, app: Flask = None):
         app = self.get_app(app)
         data = get_state(app).data
         data[corr_id]["is_accept"] = True
         data[corr_id]["result"] = result
-        self.get_channel(app).queue_delete(data[corr_id]["reply_queue_name"])
+
+        with self.channel(app) as channel:
+            channel.queue_delete(data[corr_id]["reply_queue_name"])
 
     def _on_response(
         self,
@@ -347,47 +256,6 @@ class Coney:
             body = json.loads(body)
 
         self._accept(corr_id, body, app=app)
-
-    def _basic_consuming(
-        self,
-        queue_name: str,
-        callback: Callable[
-            [
-                pika.channel.Channel,
-                pika.spec.Basic.Deliver,
-                pika.spec.BasicProperties,
-                str,
-            ],
-            None,
-        ],
-        app=None,
-    ):
-        """
-        Consume messages of a queue
-
-        :param queue_name: Name of the queue
-        :param callback: Function to call on new messages
-
-        :return: Consumer tag which may be used to cancel the consumer
-        """
-
-        def advanced_callback(ch, method, props, body):
-            if props.content_type == "application/json":
-                body = json.loads(body)
-            callback(ch, method, props, body)
-
-        self.get_channel(app).basic_qos(prefetch_count=1)
-        return self.get_channel(app).basic_consume(queue_name, advanced_callback)
-
-    def _start_consuming(self, app=None):
-        """
-        Processes I/O events and dispatches timers and basic_consume
-        callbacks until all consumers are cancelled.
-        """
-        self.get_channel(app, bind="__thread__").start_consuming()
-
-    def _stop_consuming(self, app=None):
-        self.get_channel(app, bind="__thread__").stop_consuming()
 
     def publish(
         self,
@@ -414,21 +282,20 @@ class Coney:
         :param durable: Should the exchange be durable
         :param app: A flask app
         """
-        channel = self.get_channel(app)
+        with self.channel(app) as channel:
+            if properties is None:
+                properties = {"content_type": "text/plain"}
 
-        if properties is None:
-            properties = {}
+            if isinstance(body, dict):
+                body = json.dumps(body, cls=UUIDEncoder)
+                properties["content_type"] = "application/json"
 
-        if isinstance(body, dict):
-            body = json.dumps(body, cls=UUIDEncoder)
-            properties["content_type"] = "application/json"
-
-        channel.basic_publish(
-            exchange=exchange_name,
-            routing_key=routing_key,
-            body=body,
-            properties=pika.BasicProperties(**properties),
-        )
+            channel.basic_publish(
+                exchange=exchange_name,
+                routing_key=routing_key,
+                body=body,
+                properties=pika.BasicProperties(**properties),
+            )
 
     def reply_sync(
         self,
@@ -455,7 +322,6 @@ class Coney:
             def concat_callback(ch, method, props, body):
                 result = body["a"] + body["b"]
                 body = {"result": result}
-                ch.basic_ack(delivery_tag=method.delivery_tag)
                 self.publish(
                     body,
                     routing_key=properties.reply_to,
@@ -469,13 +335,13 @@ class Coney:
         :parameter body: The message to send
 
         """
-        ch.basic_ack(delivery_tag=method.delivery_tag)
         self.publish(
             body,
             routing_key=properties.reply_to,
             properties={"correlation_id": properties.correlation_id},
             app=app,
         )
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def publish_sync(
         self,
@@ -517,48 +383,45 @@ class Coney:
         :raises:
             SyncTimeoutError: if no message received in timeout
         """
+
         app = self.get_app(app)
-        corr_id = str(uuid.uuid4())
-        callback_queue = self._temporary_queue_declare(app=app)
-        state = get_state(app)
-        state.data[corr_id] = {
-            "is_accept": False,
-            "result": None,
-            "reply_queue_name": callback_queue,
-        }
+        with self.connection(app) as connection:
+            corr_id = str(uuid.uuid4())
+            channel = connection.channel()
+            result = channel.queue_declare(queue="", exclusive=False, auto_delete=True)
+            callback_queue = result.method.queue
+            state = get_state(app)
+            state.data[corr_id] = {
+                "is_accept": False,
+                "result": None,
+                "reply_queue_name": callback_queue,
+            }
+            channel.basic_qos(prefetch_count=1)
+            channel.basic_consume(callback_queue, self._on_response, auto_ack=True)
 
-        if properties is None:
-            properties = {}
+            if properties is None:
+                properties = {"content_type": "text/plain"}
 
-        if isinstance(body, dict):
-            body = json.dumps(body, cls=UUIDEncoder)
-            properties["content_type"] = "application/json"
+            if isinstance(body, dict):
+                body = json.dumps(body, cls=UUIDEncoder)
+                properties["content_type"] = "application/json"
 
-        channel = self.get_channel(app)
-        channel.basic_consume(callback_queue, self._on_response, auto_ack=True)
-        channel.basic_publish(
-            exchange="",
-            routing_key=routing_key,
-            body=body,
-            properties=pika.BasicProperties(
-                **properties, reply_to=callback_queue, correlation_id=corr_id
-            ),
-        )
+            channel.basic_publish(
+                exchange="",
+                routing_key=routing_key,
+                body=body,
+                properties=pika.BasicProperties(
+                    **properties, reply_to=callback_queue, correlation_id=corr_id,
+                ),
+            )
 
-        end = time.time() + timeout
+            end = time.time() + timeout
 
-        while time.time() < end:
-            if state.data[corr_id]["is_accept"]:
-                logging.info("Got the RPC server response")
-                return state.data[corr_id]["result"]
-            else:
-                connection = self.get_connection(app)
-                connection.process_data_events()
-                time.sleep(0.3)
-        raise SyncTimeoutError()
-
-    def run(self):
-        logging.info(" * The Flask Coney application is consuming")
-        if not self.testing and (self.thread is None or not self.thread.is_alive()):
-            self.thread = threading.Thread(target=self._start_consuming)
-            self.thread.start()
+            while time.time() < end:
+                if state.data[corr_id]["is_accept"]:
+                    logging.info("Got the RPC server response")
+                    return state.data[corr_id]["result"]
+                else:
+                    connection.process_data_events()
+                    time.sleep(0.3)
+            raise SyncTimeoutError()

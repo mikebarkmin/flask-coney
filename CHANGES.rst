@@ -1,3 +1,8 @@
+Version 1.1.4
+-------------
+
+-   Fix: Multiple queue consumers not working
+
 Version 1.1.3
 -------------
 

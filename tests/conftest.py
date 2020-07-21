@@ -3,6 +3,7 @@ from flask import Flask
 from pytest_rabbitmq import factories
 
 from flask_coney import Coney
+from flask_coney import get_state
 
 rabbitmq_proc = factories.rabbitmq_proc()
 rabbitmq = factories.rabbitmq("rabbitmq_proc")
@@ -19,7 +20,12 @@ def app():
 @pytest.fixture
 def coney(app):
     with app.app_context():
-        yield Coney(app, testing=True)
+        coney = Coney(app)
+        yield coney
+
+        for consumer, thread in get_state(app).consumer_threads:
+            consumer.stop()
+            thread.join()
 
 
 @pytest.fixture
