@@ -397,7 +397,7 @@ class Coney:
                 "reply_queue_name": callback_queue,
             }
             channel.basic_qos(prefetch_count=1)
-            channel.basic_consume(callback_queue, self._on_response, auto_ack=True)
+            channel.basic_consume(callback_queue, self._on_response)
 
             if properties is None:
                 properties = {"content_type": "text/plain"}
