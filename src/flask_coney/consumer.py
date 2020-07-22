@@ -15,7 +15,7 @@ class Consumer:
         exchange="",
         exchange_type=ExchangeType.DIRECT,
         queue="",
-        routing_key="",
+        routing_keys=None,
         on_message=None,
     ):
         self.should_reconnect = False
@@ -31,7 +31,9 @@ class Consumer:
         self._exchange = exchange
         self._exchange_type = exchange_type.value
         self._queue = queue
-        self._routing_key = routing_key
+        if not routing_keys:
+            routing_keys = []
+        self._routing_keys = routing_keys
         self._on_message = on_message
 
     def connect(self):
@@ -183,24 +185,24 @@ class Consumer:
         """
         if self._exchange != "":
             queue_name = userdata
-            logger.info(
-                "Binding %s to %s with %s",
-                self._exchange,
-                queue_name,
-                self._routing_key,
-            )
-            cb = functools.partial(self.on_bindok, userdata=queue_name)
-            self._channel.queue_bind(
-                queue_name, self._exchange, routing_key=self._routing_key, callback=cb
-            )
+            for routing_key in self._routing_keys:
+                logger.info(
+                    "Binding %s to %s with %s",
+                    self._exchange,
+                    queue_name,
+                    self._routing_key,
+                )
+                self._channel.queue_bind(
+                    queue_name, self._exchange, routing_key=routing_key
+                )
+            self.on_bindok(_unused_frame, userdata)
         else:
             logger.info("Queue is already bound to default exchange")
             self.on_bindok(_unused_frame, userdata)
 
     def on_bindok(self, _unused_frame, userdata):
-        """Invoked by pika when the Queue.Bind method has completed. At this
+        """Invoked when the Queue.Bind method has completed. At this
         point we will set the prefetch count for the channel.
-        :param pika.frame.Method _unused_frame: The Queue.BindOk response frame
         :param str|unicode userdata: Extra user data (queue name)
         """
         logger.info("Queue bound: %s", userdata)

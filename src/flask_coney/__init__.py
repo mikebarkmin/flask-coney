@@ -5,6 +5,7 @@ import time
 import uuid
 from contextlib import contextmanager
 from typing import Callable
+from typing import List
 from typing import Union
 
 import pika
@@ -165,6 +166,7 @@ class Coney:
         exchange_name: str = "",
         exchange_type: ExchangeType = ExchangeType.DIRECT,
         routing_key: str = None,
+        routing_keys: List[str] = None,
         app: Flask = None,
     ) -> Callable:
         """
@@ -178,15 +180,28 @@ class Coney:
             def queue_test(ch, method, props, body):
                 pass
 
+        You can also bind the queue to multiple routing keys::
+
+            @coney.queue(routing_keys=["first", "second"])
+            def queue_multiple(ch, method, props, body):
+                pass
+
+        If routing_keys and a routing_key is provided, they will be
+        combined.
+
         :param type: ExchangeType
         :param queue_name: Name of the queue
         :param exchange_name: Name of the exchange
         :param exchange_type: Type of the exchange
         :param routing_key: The routing key
+        :param routing_keys: A list of routing keys
         :param app: A flask app
         """
         app = self.get_app(app)
         state = get_state(app)
+
+        if not routing_keys:
+            routing_keys = []
 
         if (
             exchange_type == ExchangeType.FANOUT
@@ -194,18 +209,6 @@ class Coney:
             or exchange_type == ExchangeType.TOPIC
             or exchange_type == ExchangeType.HEADERS
         ):
-            if not queue_name:
-                # If queue name is empty, then declare a temporary queue
-                with self.channel(app) as channel:
-                    result = channel.queue_declare(
-                        queue=queue_name,
-                        passive=False,
-                        durable=False,
-                        exclusive=False,
-                        auto_delete=False,
-                    )
-                    queue_name = result.method.queue
-
             if exchange_name == "" and routing_key and routing_key != queue_name:
                 # on default exchange it will be automaticaly bound ot quene_name
                 raise RuntimeError(
@@ -222,7 +225,7 @@ class Coney:
                 exchange=exchange_name,
                 exchange_type=exchange_type,
                 queue=queue_name,
-                routing_key=routing_key,
+                routing_keys=routing_keys + [routing_key],
                 on_message=func,
             )
             thread = threading.Thread(target=consumer.run)
