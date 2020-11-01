@@ -93,26 +93,257 @@ which allows a user to request the processed data.</p>
 <span class="nd">@coney</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span><span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;process&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">process_queue</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
     <span class="c1"># do something with body</span>
-    <span class="n">processed_body</span> <span class="o">=</span> <span class="n">body</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">processed_body</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="work-queues">
 <h2>Work queues<a class="headerlink" href="#work-queues" title="Permalink to this headline">¶</a></h2>
+<p>In this example service1 publishes a message. This message it then
+either processed by service2 or service3, depending on how reads the
+message first. This can be useful, if you want to split up the
+workload.</p>
+<div class="section" id="id2">
+<h3>Service 1<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="service-2">
+<h3>Service 2<a class="headerlink" href="#service-2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="service-3">
+<h3>Service 3<a class="headerlink" href="#service-3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="publish-subscribe">
 <h2>Publish/Subscribe<a class="headerlink" href="#publish-subscribe" title="Permalink to this headline">¶</a></h2>
+<p>In this example service1 publishes a message to an exchange. Because
+it is a fanout exchange all queues will receive a copy of this
+message. Thus, service2 and service3 will process the message.</p>
+<div class="section" id="id3">
+<h3>Service 1<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/pub&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">pub</span><span class="p">():</span>
+    <span class="n">coney</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;A message&quot;</span><span class="p">,</span> <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;notify&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;It will be process by service2 and service3&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h3>Service 2<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span><span class="p">,</span> <span class="n">ExchangeType</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@coney</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span>
+    <span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;service2.notify&quot;</span><span class="p">,</span>
+    <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;notify&quot;</span><span class="p">,</span>
+    <span class="n">exchange_type</span><span class="o">=</span><span class="n">ExchangeType</span><span class="o">.</span><span class="n">FANOUT</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">notify_queue</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h3>Service 3<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span><span class="p">,</span> <span class="n">ExchangeType</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@coney</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span>
+    <span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;service3.notify&quot;</span><span class="p">,</span>
+    <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;notify&quot;</span><span class="p">,</span>
+    <span class="n">exchange_type</span><span class="o">=</span><span class="n">ExchangeType</span><span class="o">.</span><span class="n">FANOUT</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">notify_queue</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="routing">
 <h2>Routing<a class="headerlink" href="#routing" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id6">
+<h3>Service 1<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/warning&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">warning</span><span class="p">():</span>
+    <span class="n">coney</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;This is a warning&quot;</span><span class="p">,</span> <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;warning&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;Warning published&quot;</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/error&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">error</span><span class="p">():</span>
+    <span class="n">coney</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;This is an error&quot;</span><span class="p">,</span> <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;Error published&quot;</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/info&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">info</span><span class="p">():</span>
+    <span class="n">coney</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;This is an info&quot;</span><span class="p">,</span> <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;Info published&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id7">
+<h3>Service 2<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@coney</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span><span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;logs_error&quot;</span><span class="p">,</span> <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">error_queue</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="nd">@coney</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span><span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;logs_warning&quot;</span><span class="p">,</span> <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;warning&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">warning_queue</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id8">
+<h3>Service 3<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@coney</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span><span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;logs_info&quot;</span><span class="p">,</span> <span class="n">exchange_name</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">info_queue</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="topics">
 <h2>Topics<a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id9">
+<h3>Service 1<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id10">
+<h3>Service 2<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id11">
+<h3>Service 3<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="request-reply">
 <h2>Request/Reply<a class="headerlink" href="#request-reply" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id12">
+<h3>Service 1<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/rpc&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">rpc</span><span class="p">():</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">coney</span><span class="o">.</span><span class="n">publish_sync</span><span class="p">(</span><span class="s2">&quot;Hi&quot;</span><span class="p">,</span> <span class="n">routing_key</span><span class="o">=</span><span class="s2">&quot;rpc&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">response</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id13">
+<h3>Service 2<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_coney</span> <span class="kn">import</span> <span class="n">Coney</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;CONEY_BROKER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amqp://guest:guest@rabbitmq&quot;</span>
+<span class="n">coney</span> <span class="o">=</span> <span class="n">Coney</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@coney</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span><span class="n">queue_name</span><span class="o">=</span><span class="s2">&quot;rpc&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">rpc_queue</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> touched by me&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">coney</span><span class="o">.</span><span class="n">reply_sync</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 
@@ -139,11 +370,35 @@ which allows a user to request the processed data.</p>
 <li><a class="reference internal" href="#serivce-2">Serivce 2</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#work-queues">Work queues</a></li>
-<li><a class="reference internal" href="#publish-subscribe">Publish/Subscribe</a></li>
-<li><a class="reference internal" href="#routing">Routing</a></li>
-<li><a class="reference internal" href="#topics">Topics</a></li>
-<li><a class="reference internal" href="#request-reply">Request/Reply</a></li>
+<li><a class="reference internal" href="#work-queues">Work queues</a><ul>
+<li><a class="reference internal" href="#id2">Service 1</a></li>
+<li><a class="reference internal" href="#service-2">Service 2</a></li>
+<li><a class="reference internal" href="#service-3">Service 3</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#publish-subscribe">Publish/Subscribe</a><ul>
+<li><a class="reference internal" href="#id3">Service 1</a></li>
+<li><a class="reference internal" href="#id4">Service 2</a></li>
+<li><a class="reference internal" href="#id5">Service 3</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#routing">Routing</a><ul>
+<li><a class="reference internal" href="#id6">Service 1</a></li>
+<li><a class="reference internal" href="#id7">Service 2</a></li>
+<li><a class="reference internal" href="#id8">Service 3</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#topics">Topics</a><ul>
+<li><a class="reference internal" href="#id9">Service 1</a></li>
+<li><a class="reference internal" href="#id10">Service 2</a></li>
+<li><a class="reference internal" href="#id11">Service 3</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#request-reply">Request/Reply</a><ul>
+<li><a class="reference internal" href="#id12">Service 1</a></li>
+<li><a class="reference internal" href="#id13">Service 2</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
