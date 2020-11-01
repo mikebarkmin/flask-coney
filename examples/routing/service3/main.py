@@ -6,7 +6,6 @@ app.config["CONEY_BROKER_URI"] = "amqp://guest:guest@rabbitmq"
 coney = Coney(app)
 
 
-@coney.queue(queue_name="process")
-def process_queue(ch, method, props, body):
-    # do something with body
+@coney.queue(queue_name="logs_info", exchange_name="logs", routing_key="info")
+def info_queue(ch, method, props, body):
     print(body, flush=True)

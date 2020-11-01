@@ -6,7 +6,8 @@ app.config["CONEY_BROKER_URI"] = "amqp://guest:guest@rabbitmq"
 coney = Coney(app)
 
 
-@coney.queue(queue_name="process")
-def process_queue(ch, method, props, body):
-    # do something with body
-    print(body, flush=True)
+@app.route("/rpc", methods=["GET"])
+def rpc():
+    response = coney.publish_sync("Hi", routing_key="rpc")
+
+    return response
